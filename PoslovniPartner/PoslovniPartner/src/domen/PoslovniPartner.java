@@ -149,13 +149,16 @@ public class PoslovniPartner {
         return true;
     }
     
-    
-
     @Override
     public String toString() {
-        return "PoslovniPartner{" + "PIB=" + PIB + ", \nmatBroj=" + matBroj + ", "
-                + "\nZR=" + ZR + ", \nnaziv=" + naziv + ", \ndatumOsnivanja=" 
-                + datumOsnivanja + ", \nmesto=" + mesto + ", \nulicaIBroj=" + ulicaIBroj + '}';
+        return naziv + ", " + PIB;
     }
+    
+//    @Override
+//    public String toString() {
+//        return "PoslovniPartner{" + "PIB=" + PIB + ", \nmatBroj=" + matBroj + ", "
+//                + "\nZR=" + ZR + ", \nnaziv=" + naziv + ", \ndatumOsnivanja=" 
+//                + datumOsnivanja + ", \nmesto=" + mesto + ", \nulicaIBroj=" + ulicaIBroj + '}';
+//    }
     
 }

@@ -8,28 +8,30 @@ package data;
 import domen.Mesto;
 import domen.PoslovniPartner;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
  *
  * @author milos
  */
-public class DatabaseBroker {
+public class Sesija {
     
-    private static DatabaseBroker INSTANCE;
+    private static Sesija INSTANCE;
     
     private List<PoslovniPartner> ppartneri;
     private List<Mesto> mesta;
     
-    private DatabaseBroker() {
+    private Sesija() {
         mesta = new ArrayList<>();
         ppartneri = new ArrayList<>();
         inicijalizacijaMesta();
+        sortirajMesta();
     }
     
-    public static DatabaseBroker getInstance() {
+    public static Sesija getInstance() {
         if(INSTANCE == null) {
-            INSTANCE = new DatabaseBroker();
+            INSTANCE = new Sesija();
         }
         return INSTANCE;
     }
@@ -38,6 +40,17 @@ public class DatabaseBroker {
         if(!ppartneri.contains(pp)) {
             ppartneri.add(pp);
             return true;
+        }
+        return false;
+    }
+    
+    public boolean azurirajPPartnera(PoslovniPartner pp) {
+        for(PoslovniPartner p : ppartneri) {
+            if(p.equals(pp)) {
+                ppartneri.remove(p);
+                ppartneri.add(pp);
+                return true;
+            }
         }
         return false;
     }
@@ -79,6 +92,19 @@ public class DatabaseBroker {
         dodajMesto(new Mesto(11000, "Beograd"));
         dodajMesto(new Mesto(21000, "Novi Sad"));
         dodajMesto(new Mesto(18000, "Nis"));
+        dodajMesto(new Mesto(34300, "Arandjelovac"));
+        dodajMesto(new Mesto(23000, "Zrenjanin"));
+        dodajMesto(new Mesto(34000, "Kragujevac"));
+    }
+    
+    private void sortirajMesta() {
+        mesta.sort(new Comparator<Mesto>() {
+
+            @Override
+            public int compare(Mesto o1, Mesto o2) {
+                return o1.getNaziv().compareTo(o2.getNaziv());
+            }
+        });
     }
     
     public void prikaziMesta() {

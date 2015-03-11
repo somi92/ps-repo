@@ -5,6 +5,7 @@
  */
 package glavna;
 
+import forme.pp.FMeni;
 import forme.pp.FPoslovniPartner;
 
 /**
@@ -13,7 +14,9 @@ import forme.pp.FPoslovniPartner;
  */
 public class Glavna {
     public static void main(String[] args) {
-        FPoslovniPartner fpp = new FPoslovniPartner();
-        fpp.setVisible(true);
+//        FPoslovniPartner fpp = new FPoslovniPartner();
+//        fpp.setVisible(true);
+        FMeni fmeni = new FMeni();
+        fmeni.setVisible(true);
     }
 }

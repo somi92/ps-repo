@@ -64,7 +64,7 @@ public class Mesto {
 
     @Override
     public String toString() {
-        return "Mesto{" + "ptt=" + ptt + ", naziv=" + naziv + '}';
+        return ptt + ", " + naziv;
     }
     
 }

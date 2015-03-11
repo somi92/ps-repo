@@ -5,13 +5,15 @@
  */
 package forme.pp;
 
-import data.DatabaseBroker;
+import data.Sesija;
+import data.operations.PoslovniPartnerOperacija;
 import domen.Mesto;
 import domen.PoslovniPartner;
 import java.awt.Color;
+import java.awt.Window;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicBorders;
@@ -22,13 +24,40 @@ import javax.swing.plaf.basic.BasicBorders;
  */
 public class FPoslovniPartner extends javax.swing.JFrame {
 
+    private Window parent;
+    private PoslovniPartnerOperacija ppoperacija;
+    
     /**
      * Creates new form FPoslovniPartner
      */
-    public FPoslovniPartner() {
+    public FPoslovniPartner(Window parent, PoslovniPartnerOperacija ppoperacija) {
         initComponents();
         initBorders();
         initMestaCombo();
+        initErr();
+        this.parent = parent;
+        this.ppoperacija = ppoperacija;
+        jbtnSacuvaj.setText(ppoperacija.vratiImeOperacije());
+        if(ppoperacija.vratiImeOperacije().contains("Sacuvaj")) {
+            setTitle("Unos novog poslovnog partnera");
+        } else if(ppoperacija.vratiImeOperacije().contains("Izmeni")) {
+            setTitle("Pregled i izmena poslovnog partnera");
+            jtxtMatBroj.setEditable(false);
+            jbtnPonisti.setVisible(false);
+        }
+    }
+    
+    public FPoslovniPartner(Window parent, PoslovniPartnerOperacija ppoperacija, PoslovniPartner pp) {
+        this(parent, ppoperacija);
+        jtxtMatBroj.setText(pp.getMatBroj());
+        jtxtPIB.setText(pp.getPIB());
+        jtxtZiroRacun.setText(pp.getZR());
+        jtxtNaziv.setText(pp.getNaziv());
+        jtxtUlicaIBroj.setText(pp.getUlicaIBroj());
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(pp.getDatumOsnivanja());
+        jdccDatumOsnivanja.setSelectedDate(cal);
+        jcomboMesto.setSelectedItem(pp.getMesto());
     }
 
     /**
@@ -59,11 +88,20 @@ public class FPoslovniPartner extends javax.swing.JFrame {
         jbtnPonisti = new javax.swing.JButton();
         jdccDatumOsnivanja = new datechooser.beans.DateChooserCombo();
         jbtnIzadji = new javax.swing.JButton();
+        jlblErrPIB = new javax.swing.JLabel();
+        jlblErrMatBr = new javax.swing.JLabel();
+        jlblErrNaziv = new javax.swing.JLabel();
+        jlblErrZR = new javax.swing.JLabel();
 
         jFormattedTextField1.setText("jFormattedTextField1");
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Registracija novog poslovnog partnera");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         jLabel1.setText("*PIB:");
 
@@ -105,6 +143,12 @@ public class FPoslovniPartner extends javax.swing.JFrame {
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Sediste"));
 
         jLabel6.setText("Mesto:");
+
+        jcomboMesto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jcomboMestoActionPerformed(evt);
+            }
+        });
 
         jLabel7.setText("Ulica i broj:");
 
@@ -211,6 +255,22 @@ public class FPoslovniPartner extends javax.swing.JFrame {
         }
     });
 
+    jlblErrPIB.setFont(new java.awt.Font("DejaVu Sans", 0, 10)); // NOI18N
+    jlblErrPIB.setForeground(new java.awt.Color(204, 0, 0));
+    jlblErrPIB.setText(" ");
+
+    jlblErrMatBr.setFont(new java.awt.Font("DejaVu Sans", 0, 10)); // NOI18N
+    jlblErrMatBr.setForeground(new java.awt.Color(204, 0, 0));
+    jlblErrMatBr.setText(" ");
+
+    jlblErrNaziv.setFont(new java.awt.Font("DejaVu Sans", 0, 10)); // NOI18N
+    jlblErrNaziv.setForeground(new java.awt.Color(204, 0, 0));
+    jlblErrNaziv.setText(" ");
+
+    jlblErrZR.setFont(new java.awt.Font("DejaVu Sans", 0, 10)); // NOI18N
+    jlblErrZR.setForeground(new java.awt.Color(204, 0, 0));
+    jlblErrZR.setText(" ");
+
     javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
@@ -223,7 +283,7 @@ public class FPoslovniPartner extends javax.swing.JFrame {
                     .addComponent(jbtnSacuvaj, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                     .addComponent(jbtnPonisti, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 71, Short.MAX_VALUE)
                     .addComponent(jbtnIzadji, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -234,12 +294,16 @@ public class FPoslovniPartner extends javax.swing.JFrame {
                         .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jdccDatumOsnivanja, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jtxtMatBroj, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jtxtNaziv, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jtxtZiroRacun, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jtxtPIB, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(jdccDatumOsnivanja, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+                        .addComponent(jtxtMatBroj, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+                        .addComponent(jtxtNaziv, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+                        .addComponent(jtxtZiroRacun, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+                        .addComponent(jtxtPIB, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
+                        .addComponent(jlblErrPIB, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jlblErrMatBr, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jlblErrZR, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jlblErrNaziv, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
             .addContainerGap(23, Short.MAX_VALUE))
     );
     layout.setVerticalGroup(
@@ -250,24 +314,32 @@ public class FPoslovniPartner extends javax.swing.JFrame {
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(jtxtPIB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(jlblErrPIB)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(jtxtMatBroj, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(jlblErrMatBr)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(jtxtZiroRacun, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(jlblErrZR)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(jtxtNaziv, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(jlblErrNaziv)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(jdccDatumOsnivanja, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGap(18, 18, 18)
             .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(jbtnSacuvaj)
                 .addComponent(jbtnPonisti)
@@ -286,9 +358,7 @@ public class FPoslovniPartner extends javax.swing.JFrame {
         String ulicaBroj = jtxtUlicaIBroj.getText();
         
         Date date = jdccDatumOsnivanja.getSelectedDate().getTime();
-        String data = (String) jcomboMesto.getSelectedItem();
-        long ptt = Long.parseLong((data.split(","))[0]);
-        Mesto m = dbbroker.vratiMesto(ptt);
+        Mesto m = (Mesto) jcomboMesto.getSelectedItem();
         
         
         boolean isValidated = validateForm(pib, matBroj, ziroRacun, naziv, ulicaBroj);
@@ -303,11 +373,24 @@ public class FPoslovniPartner extends javax.swing.JFrame {
             pp.setMesto(m);
             
             boolean res;
-            res = dbbroker.dodajPPartnera(pp);
+//            res = dbbroker.dodajPPartnera(pp);
+            res = ppoperacija.izvrsiOperaciju(pp);
             if(res) {
-                JOptionPane.showMessageDialog(this, "Poslovni partner je uspesno dodat.", "Obavestenje", JOptionPane.INFORMATION_MESSAGE);
+                String message = "";
+                if(ppoperacija.vratiImeOperacije().contains("Sacuvaj")) {
+                    message = "sacuvan";
+                } else if(ppoperacija.vratiImeOperacije().contains("Izmeni")) {
+                    message = "izmenjen";
+                }
+                JOptionPane.showMessageDialog(this, "Poslovni partner je uspesno "+message+".", "Obavestenje", JOptionPane.INFORMATION_MESSAGE);
                 dbbroker.prikaziPPartnere();
                 resetFields();
+                if(ppoperacija.vratiImeOperacije().contains("Izmeni")) {
+                    dispose();
+                    if(parent != null) {
+                        parent.setVisible(true);
+                    }
+                }
             } else {
                 JOptionPane.showMessageDialog(this, "Poslovni partner nije dodat jer vec postoji u bazi.", "Greska!", JOptionPane.ERROR_MESSAGE);
             }
@@ -317,74 +400,79 @@ public class FPoslovniPartner extends javax.swing.JFrame {
     private void jtxtNazivFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jtxtNazivFocusGained
         jtxtNaziv.setBorder(defaultBorder);
         jtxtNaziv.setToolTipText(null);
+        jlblErrNaziv.setText("");
     }//GEN-LAST:event_jtxtNazivFocusGained
 
     private void jtxtZiroRacunFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jtxtZiroRacunFocusGained
         jtxtZiroRacun.setBorder(defaultBorder);
         jtxtZiroRacun.setToolTipText(null);
+        jlblErrZR.setText("");
     }//GEN-LAST:event_jtxtZiroRacunFocusGained
 
     private void jtxtMatBrojFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jtxtMatBrojFocusGained
         jtxtMatBroj.setBorder(defaultBorder);
         jtxtMatBroj.setToolTipText(null);
+        jlblErrMatBr.setText("");
     }//GEN-LAST:event_jtxtMatBrojFocusGained
 
     private void jtxtPIBFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jtxtPIBFocusGained
         jtxtPIB.setBorder(defaultBorder);
         jtxtPIB.setToolTipText(null);
+        jlblErrPIB.setText("");
     }//GEN-LAST:event_jtxtPIBFocusGained
 
     private void jbtnIzadjiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnIzadjiActionPerformed
-        
         dispose();
+        if(parent != null) {
+            parent.setVisible(true);
+        }
     }//GEN-LAST:event_jbtnIzadjiActionPerformed
 
     private void jbtnPonistiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnPonistiActionPerformed
         resetFields();
     }//GEN-LAST:event_jbtnPonistiActionPerformed
 
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        dispose();
+        if(parent != null) {
+            parent.setVisible(true);
+        }
+    }//GEN-LAST:event_formWindowClosing
+
+    private void jcomboMestoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jcomboMestoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jcomboMestoActionPerformed
+
     private boolean validateForm(String pib, String matBroj, String ziroRacun, String naziv, String ulicaBroj) {
         
-        boolean message = false;
+        boolean isValid = true;
         
         if(pib==null || !(pib.matches("[0-9]{9}"))) {
             jtxtPIB.setBorder(errorBorder);
             jtxtPIB.setToolTipText("PIB mora da ima 9 cifara!");
-            if(!message) {
-                JOptionPane.showMessageDialog(this, "PIB mora da ima 9 cifara!", "Greska!", JOptionPane.ERROR_MESSAGE);
-                message = true;
-            }
+            jlblErrPIB.setText("PIB mora da ima 9 cifara!");
+            isValid = false;
         }
         if(matBroj==null || !(matBroj.matches("[0-9]{12}"))) {
             jtxtMatBroj.setBorder(errorBorder);
             jtxtMatBroj.setToolTipText("Maticni broj mora da ima 12 cifara!");
-            if(!message) {
-                JOptionPane.showMessageDialog(this, "Maticni broj mora da ima 12 cifara!", "Greska!", JOptionPane.ERROR_MESSAGE);
-                message = true;
-            }
+            jlblErrMatBr.setText("Maticni broj mora da ima 12 cifara!");
+            isValid = false;
         }
         if(ziroRacun!=null && !ziroRacun.isEmpty() && !(ziroRacun.matches("([0-9]{3})-([0-9]{3,12})-([0-9]{2})"))) {
             jtxtZiroRacun.setBorder(errorBorder);
             jtxtZiroRacun.setToolTipText("Neispravan format ziro racuna!");
-            if(!message) {
-                JOptionPane.showMessageDialog(this, "Neispravan format ziro racuna!", "Greska!", JOptionPane.ERROR_MESSAGE);
-                message = true;
-            }
-            
+            jlblErrZR.setText("Neispravan format ziro racuna!");
+            isValid = false;
         }
         if(naziv==null || naziv.isEmpty()) {
             jtxtNaziv.setBorder(errorBorder);
             jtxtNaziv.setToolTipText("Mora se uneti naziv firme!");
-            if(!message) {
-                JOptionPane.showMessageDialog(this, "Mora se uneti naziv firme!", "Greska!", JOptionPane.ERROR_MESSAGE);
-                message = true;
-            }
+            jlblErrNaziv.setText("Mora se uneti naziv firme!");
+            isValid = false;
         }
         
-        if(message) {
-            return false;
-        }
-        return true;
+        return isValid;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -402,6 +490,10 @@ public class FPoslovniPartner extends javax.swing.JFrame {
     private javax.swing.JButton jbtnSacuvaj;
     private javax.swing.JComboBox jcomboMesto;
     private datechooser.beans.DateChooserCombo jdccDatumOsnivanja;
+    private javax.swing.JLabel jlblErrMatBr;
+    private javax.swing.JLabel jlblErrNaziv;
+    private javax.swing.JLabel jlblErrPIB;
+    private javax.swing.JLabel jlblErrZR;
     private javax.swing.JTextField jtxtMatBroj;
     private javax.swing.JTextField jtxtNaziv;
     private javax.swing.JTextField jtxtPIB;
@@ -411,7 +503,7 @@ public class FPoslovniPartner extends javax.swing.JFrame {
     private Border errorBorder;
     private Border defaultBorder;
     
-    private DatabaseBroker dbbroker;
+    private Sesija dbbroker;
     
     private void initBorders() {
         defaultBorder = jtxtPIB.getBorder();
@@ -419,12 +511,10 @@ public class FPoslovniPartner extends javax.swing.JFrame {
     }
     
     private void initMestaCombo() {
-        dbbroker = DatabaseBroker.getInstance();
+        dbbroker = Sesija.getInstance();
         List<Mesto> mesta = dbbroker.vratiSvaMesta();
-        String[] data = new String[mesta.size()];
-        for(int i=0; i<mesta.size(); i++) {
-            data[i] = mesta.get(i).getPtt() + ", " + mesta.get(i).getNaziv();
-            jcomboMesto.addItem(data[i]);
+        for(Mesto m : mesta) {
+            jcomboMesto.addItem(m);
         }   
     }
     
@@ -434,5 +524,12 @@ public class FPoslovniPartner extends javax.swing.JFrame {
         jtxtNaziv.setText("");
         jtxtZiroRacun.setText("");
         jtxtUlicaIBroj.setText("");
+    }
+    
+    private void initErr() {
+        jlblErrMatBr.setText("");
+        jlblErrNaziv.setText("");
+        jlblErrPIB.setText("");
+        jlblErrZR.setText("");
     }
 }
